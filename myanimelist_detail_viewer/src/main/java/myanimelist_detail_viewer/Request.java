@@ -1,38 +1,30 @@
 package myanimelist_detail_viewer;
-// import java.net.http.HttpClient;
 
 import java.io.IOException;
-
-// import javax.swing.text.html.parser.Element;
-// import java.net.URI;
-// import java.net.http.HttpClient;
-// import java.net.http.HttpRequest;
-// import java.net.http.HttpResponse;
-// import java.net.http.HttpResponse.BodyHandlers;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
-
 import java.util.Arrays;
 
 // https://jsoup.org/cookbook/extracting-data/selector-syntax
 // https://www.youtube.com/watch?v=riZ2GAaMDGM
 
+// Convert animeDescriptorsArray to HashMap.
 public class Request
 {
-    public static void getRequest() throws IOException, InterruptedException
+    String url;
+    Document document;
+
+    Request(String url) throws IOException, InterruptedException
     {
-        // HttpClient client = HttpClient.newHttpClient();
-        // HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://myanimelist.net/anime/59978/Sousou_no_Frieren_2nd_Season")).GET().build();
-        // HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        // System.out.println(response.body());
-        
-        String url = "https://myanimelist.net/anime/59978/Sousou_no_Frieren_2nd_Season";
-        Document document = Jsoup.connect(url).get();
+        this.url = url;
+        document = Jsoup.connect(url).get();
+    }
+
+    public void getRequest()
+    {   
         Elements animeDescriptors = document.select("div.spaceit_pad");
-        
         String[] animeDescriptorsArray = new String[0];
 
         for (Element descriptor : animeDescriptors)
@@ -40,29 +32,30 @@ public class Request
             
             if (isValidDescriptor(descriptor.text()) == true)
             {
-                // System.out.println(descriptor.text());
                 String[] tempArray = Arrays.copyOf(animeDescriptorsArray, animeDescriptorsArray.length + 1);
                 int lastIndex = tempArray.length - 1;
 
-                
-                tempArray[lastIndex] = removeDoubleGenre(descriptor);
-           
+                tempArray[lastIndex] = descriptor.text();
                 animeDescriptorsArray = tempArray;
             }
         }
 
-        // System.out.println(Arrays.toString(animeDescriptorsArray));
+        // Tries to remove double genres.
+        // for (int x = 0; x < animeDescriptorsArray.length; x += 1)
+        // {
+        //     if (animeDescriptorsArray[x].contains("Action".repeat(2)))
+        //     {
+        //         animeDescriptorsArray[x] = "\naa\n";
+        //     }
+        // }
+
         for (String desc : animeDescriptorsArray)
         {
-            // Only adventure genre is printed right now.
-            // Fix in removeDoubleGenre().
             System.out.println(desc);
         }
-
-        // System.out.println(animeDescriptorsArray.length);
     }
 
-    private static boolean isValidDescriptor(String descriptor)
+    private boolean isValidDescriptor(String descriptor)
     {
         String[] validDescriptors = {
             "Type",
@@ -75,7 +68,10 @@ public class Request
             "Licensors",
             "Studios",
             "Source",
+            "Genre",
             "Genres",
+            "Theme",
+            "Themes",
             "Demographic",
             "Duration",
             "Rating"
@@ -100,17 +96,46 @@ public class Request
     // When getting the genres, each genre is doubled due to how the html is formatted.
     // Remove the double genre to just a single one for each genre.
     // Then, return each genre as an array perhaps.
-    private static String removeDoubleGenre(Element descriptor)
+    private String removeDoubleGenre(Element descriptor)
     {
-        if (descriptor.text().toLowerCase().contains("genre"))
+        if (descriptor.text().toLowerCase().contains("genres"))
         {
-            // System.out.println(descriptor.text());
-
             String[] genre = descriptor.text().split(" ");
             genre[1] = genre[1].substring(genre[1].length() / 2);
-            return genre[1];
+            return "Genres: " + genre[1];
+        }
+        else if (descriptor.text().toLowerCase().contains("genre"))
+        {
+            String[] genre = descriptor.text().split(" ");
+            genre[1] = genre[1].substring(genre[1].length() / 2);
+            return "Genre: " + genre[1];
         }
 
         return descriptor.text();
+    }
+
+    protected String[] getGenres() throws IOException
+    {
+        Elements genres = document.select("span[itemprop][style]");
+        String[] animeGenres = new String[0];
+       
+        for (Element genre : genres)
+        {
+            if (genre.attr("itemprop").equals("ratingCount"))
+            {
+                continue;
+            }
+
+            String[] newArray = Arrays.copyOf(animeGenres, animeGenres.length + 1);
+            newArray[newArray.length - 1] = genre.text();
+            animeGenres = newArray;
+        }
+
+        return animeGenres;
+    }
+
+    private void getDemographics()
+    {
+
     }
 }

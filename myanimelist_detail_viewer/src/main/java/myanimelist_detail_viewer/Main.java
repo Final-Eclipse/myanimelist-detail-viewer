@@ -11,6 +11,8 @@ public class Main
 {
     public static void main(String[] args) throws IOException, InterruptedException
     {
-        Request.getRequest();
+        Request anime = new Request("https://myanimelist.net/anime/55825/Jigokuraku_2nd_Season");
+        anime.getRequest();
+        // anime.getGenres();
     }    
 }

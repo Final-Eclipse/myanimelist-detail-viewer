@@ -1,22 +1,33 @@
 package myanimelist_detail_viewer;
 
-public class Anime 
+import java.io.IOException;
+import java.util.Arrays;
+
+public class Anime extends Request
 {
-    String name;
-    String animeType; 
-    int episodes;
-    boolean isAiring;
-    String airingStartDate;
-    String airingEndDate; 
-    String seasonPremiered;
-    String broadcastTime;
-    String[] producers;
-    String[] licensors;  
-    String[] studios;
-    String sourceMaterial;
-    String[] genres;
-    String[] themes;
-    int durationPerEpisode;
-    String rating;
-    int users;
+    Anime(String url) throws IOException, InterruptedException
+    {
+        super(url);
+    }
+    
+    public String toString()
+    {
+        String information = "";
+        information += "-----" + Arrays.toString(animeDescriptorsHashMap.get("Title")) + "-----\n";
+
+        for (String informationType : animeDescriptorsHashMap.keySet())
+        {
+            if (informationType.equals("Title"))
+            {
+                continue;
+            }
+
+            information += informationType + "- " + Arrays.toString(animeDescriptorsHashMap.get(informationType)) + "\n";
+        }
+
+        // Removes the newline at the end.
+        information = information.substring(0, information.length() - 1);
+
+        return information;
+    }
 }
